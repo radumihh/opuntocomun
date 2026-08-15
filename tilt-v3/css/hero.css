@@ -1,0 +1,599 @@
+/* =========================================================
+   HERO — full-screen stage, room, O., texts, chrome
+   ========================================================= */
+
+.hero {
+    position: relative;
+    width: 100%;
+    height: 100vh;
+    overflow: hidden;
+    background: var(--paper);
+    isolation: isolate;
+}
+
+/* ---------------------------------------------------------
+   BACKGROUND COLOR SHADE
+   Cheap GPU opacity crossfade for the light<->dark switch.
+   --------------------------------------------------------- */
+.bg-shade {
+    position: absolute;
+    inset: 0;
+    z-index: 0;
+    background: var(--void);
+    opacity: 0;
+    pointer-events: none;
+    will-change: opacity;
+}
+
+/* ---------------------------------------------------------
+   VIGNETTE — radial darkening pushing the room back.
+   --------------------------------------------------------- */
+.vignette {
+    position: absolute;
+    inset: 0;
+    z-index: 4;
+    pointer-events: none;
+    background: radial-gradient(
+        ellipse at 50% 42%,
+        rgba(0, 0, 0, 0) 42%,
+        rgba(0, 0, 0, .28) 82%,
+        rgba(0, 0, 0, .55) 100%
+    );
+    opacity: .5;
+    /* normal blend: a full-screen mix-blend-mode forces an extra composite
+       pass every frame on battery; a plain dark radial reads near-identically
+       on the light paper hero and composites for free. */
+}
+
+/* ---------------------------------------------------------
+   BACKGROUND WORLD
+   --------------------------------------------------------- */
+.world {
+    position: absolute;
+    inset: 0;
+    z-index: 1;
+    overflow: hidden;
+    perspective: var(--world-persp);
+    perspective-origin: 50% 45%;
+}
+
+.world-layer {
+    position: absolute;
+    inset: 0;
+    overflow: hidden;
+    /* Promoted to a compositing layer at the very first paint so the
+       FIRST world transition doesn't stagger while the browser builds
+       this layer on the spot (subsequent switches feel fine because the
+       layer already exists). */
+    will-change: transform, opacity;
+}
+
+.architecture-world { z-index: 1; opacity: 1; }
+.concept-world      { z-index: 2; opacity: 0; }
+
+/* 3D stage */
+.room {
+    position: absolute;
+    inset: 0;
+    transform-style: preserve-3d;
+}
+
+/* Wall — vertical strips */
+.wall {
+    position: absolute;
+    left: 0;
+    right: 0;
+    top: 0;
+    bottom: 34%;
+    display: flex;
+    transform-style: preserve-3d;
+    perspective: var(--wall-persp);
+    perspective-origin: 50% 16%;
+}
+
+.strip {
+    position: relative;
+    flex: 1;
+    min-width: 0;
+    height: 100%;
+    overflow: hidden;
+    will-change: transform;
+}
+
+.strip-media {
+    position: absolute;
+    left: -20%;
+    top: -20%;
+    width: 140%;
+    height: 140%;
+    background-size: cover;
+    background-position: center;
+    pointer-events: none;
+    opacity: .9;
+    /* transform-only promotion. The per-image colour grade is NOT a
+       filter anymore (see .wall below) — a GPU filter on every one of
+       the 12+12 strip layers is the #1 battery-throttle cost: each
+       horizontal translate forces a full re-raster of every filtered
+       strip. One filter on the wall = one filtered composite. */
+    will-change: transform;
+}
+
+/* Colour grade — applied ONCE per wall, not per strip.
+   .wall only holds the (2-D: x/y/scale) strips, so flattening it here is
+   visually identical to filtering each strip, but composites ONE filtered
+   layer per world instead of TWELVE. On a throttled/battery GPU this is the
+   difference between jank and buttery. */
+.architecture-world .wall { filter: saturate(1.05) brightness(1.05) contrast(1.02); }
+.concept-world .wall     { filter: brightness(.5) contrast(1.35) saturate(1.4); }
+
+/* Floor — receding grid */
+.floor {
+    position: absolute;
+    left: -30%;
+    right: -30%;
+    bottom: 0;
+    height: 38%;
+    pointer-events: none;
+    background-image:
+        linear-gradient(rgba(255, 255, 255, .35) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(255, 255, 255, .35) 1px, transparent 1px);
+    background-size: 70px 70px;
+    transform-origin: top center;
+    transform: perspective(800px) rotateX(58deg);
+    will-change: transform, opacity;
+    -webkit-mask-image: linear-gradient(to bottom, rgba(0,0,0,0) 0%, rgba(0,0,0,.25) 22%, rgba(0,0,0,1) 62%);
+    mask-image: linear-gradient(to bottom, rgba(0,0,0,0) 0%, rgba(0,0,0,.25) 22%, rgba(0,0,0,1) 62%);
+}
+
+.architecture-world .floor {
+    background-image:
+        linear-gradient(rgba(20, 20, 20, .55) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(20, 20, 20, .55) 1px, transparent 1px);
+}
+
+.concept-world .floor {
+    background-image:
+        linear-gradient(rgba(255, 255, 255, .28) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(255, 255, 255, .28) 1px, transparent 1px);
+}
+
+/* ---------------------------------------------------------
+   NAV
+   --------------------------------------------------------- */
+.nav {
+    position: absolute;
+    left: 0;
+    right: 0;
+    top: 0;
+    z-index: 700;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 28px 32px;
+    color: var(--ink);
+}
+
+.brand {
+    font-size: 15px;
+    font-weight: 600;
+    letter-spacing: -.08em;
+}
+
+.nav-right {
+    display: flex;
+    gap: 28px;
+}
+
+.nav-item {
+    font-size: 9px;
+    letter-spacing: .22em;
+    text-transform: uppercase;
+    opacity: .62;
+}
+
+/* ---------------------------------------------------------
+   STORY / SIDE TEXTS
+   --------------------------------------------------------- */
+.story {
+    position: absolute;
+    inset: 0;
+    z-index: 50;
+    pointer-events: none;
+}
+
+.side {
+    position: absolute;
+    top: 50%;
+    max-width: 360px;
+    width: 27vw;
+    transform: translateY(-50%);
+    z-index: 200;
+    pointer-events: auto;
+    cursor: pointer;
+    will-change: transform, opacity;
+    text-shadow:
+        0 1px 14px rgba(0, 0, 0, .28),
+        0 2px 40px rgba(0, 0, 0, .22);
+}
+
+/* LEGIBILITY SCRIM — a soft gradient panel behind each side's text so it
+   reads cleanly over the busy photo walls (which are lit/dark unpredictably).
+   It's a static painted gradient (no blur / no per-frame cost), so it costs
+   nothing during transitions or on battery. */
+.side::before {
+    content: "";
+    position: absolute;
+    inset: -34px -46px;
+    z-index: -1;
+    border-radius: 26px;
+    pointer-events: none;
+}
+
+/* Architecture (left) — light text on light-scrimmed panels: stays dark &
+   crisp over both bright and dark photo areas. */
+body.theme-text-dark .side.left::before {
+    background: radial-gradient(
+        ellipse at center,
+        rgba(255, 255, 255, .78) 0%,
+        rgba(255, 255, 255, .42) 55%,
+        rgba(255, 255, 255, 0) 100%
+    );
+}
+
+/* Concept (right) — dark text is white, a faint dark scrim lifts it off the
+   dark-treated wall so the description doesn't drown. */
+body.theme-text-light .side.right::before {
+    background: radial-gradient(
+        ellipse at center,
+        rgba(5, 5, 5, .55) 0%,
+        rgba(5, 5, 5, .28) 55%,
+        rgba(5, 5, 5, 0) 100%
+    );
+}
+
+.side.left {
+    left: 40px;
+    text-align: left;
+}
+
+.side.right {
+    right: 40px;
+    text-align: right;
+}
+
+.side-index {
+    display: block;
+    margin-bottom: 2vh;
+    font-size: clamp(8px, .65vw, 11px);
+    letter-spacing: .27em;
+    text-transform: uppercase;
+    opacity: .68;
+}
+
+.side-title {
+    margin: 0;
+    font-size: clamp(32px, 4vw, 68px);
+    line-height: .88;
+    font-weight: 400;
+    letter-spacing: -.075em;
+    opacity: .96;
+}
+
+.side-description {
+    max-width: 270px;
+    margin-top: 2.4vh;
+    font-size: clamp(11px, .95vw, 13px);
+    line-height: 1.7;
+    opacity: .82;
+    font-weight: 400;
+}
+
+.side.right .side-description {
+    margin-left: auto;
+}
+
+/* ---------------------------------------------------------
+   CENTER STAGE (O.)
+   --------------------------------------------------------- */
+.stage {
+    position: absolute;
+    left: 50%;
+    top: 50%;
+    width: var(--stage-w);
+    aspect-ratio: 1;
+    transform: translate(-50%, -50%);
+    perspective: var(--stage-persp);
+    perspective-origin: 50% 38%;
+    transform-style: preserve-3d;
+    z-index: 300;
+    pointer-events: none;
+}
+
+/* O. shadow — depth cue, slides opposite to tilt.
+   Centering via GSAP xPercent/yPercent (see tilt.js) so it
+   survives GSAP's transform pipeline; no CSS translate here. */
+.o-shadow {
+    position: absolute;
+    left: 50%;
+    top: 50%;
+    width: 70%;
+    height: 70%;
+    border-radius: 50%;
+    background: radial-gradient(
+        ellipse at center,
+        rgba(0, 0, 0, .72) 0%,
+        rgba(0, 0, 0, .4) 44%,
+        rgba(0, 0, 0, 0) 72%
+    );
+    filter: blur(18px);
+    opacity: .6;
+    z-index: 1;
+    will-change: transform, opacity;
+    pointer-events: none;
+}
+
+/* O. object
+   Centering via GSAP xPercent/yPercent (see tilt.js) so it
+   survives GSAP's transform pipeline; no CSS translate here. */
+.o-object {
+    position: absolute;
+    left: 50%;
+    top: 50%;
+    width: 72%;
+    height: 72%;
+    transform-style: preserve-3d;
+    z-index: 2;
+    will-change: transform, opacity;
+    pointer-events: auto;
+    cursor: pointer;
+}
+
+.logo-shell {
+    position: absolute;
+    inset: 0;
+    overflow: hidden;
+}
+
+/* SVG mask — video lives only inside it */
+.logo-mask {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    overflow: hidden;
+    -webkit-mask-image: url("../../logo.svg");
+    mask-image: url("../../logo.svg");
+    -webkit-mask-repeat: no-repeat;
+    mask-repeat: no-repeat;
+    -webkit-mask-position: center;
+    mask-position: center;
+    -webkit-mask-size: contain;
+    mask-size: contain;
+}
+
+.logo-video-wrap {
+    position: absolute;
+    inset: -15%;
+    overflow: hidden;
+}
+
+.logo-video {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    will-change: transform, opacity;
+}
+
+.architecture-video { opacity: 1; }
+.concept-video      { opacity: 0; }
+
+/* ---------------------------------------------------------
+   CENTER COPY
+   --------------------------------------------------------- */
+.center-copy {
+    position: absolute;
+    left: 50%;
+    top: calc(50% + min(27vw, 370px));
+    transform: translateX(-50%);
+    z-index: 400;
+    text-align: center;
+    pointer-events: none;
+    text-shadow:
+        0 1px 12px rgba(0, 0, 0, .3),
+        0 2px 30px rgba(0, 0, 0, .25);
+}
+
+.center-kicker {
+    margin-bottom: 8px;
+    font-size: 8px;
+    letter-spacing: .3em;
+    text-transform: uppercase;
+    opacity: .6;
+}
+
+.center-title {
+    margin: 0;
+    font-size: 10px;
+    letter-spacing: .16em;
+    text-transform: uppercase;
+    opacity: .9;
+}
+
+/* ---------------------------------------------------------
+   BOTTOM
+   --------------------------------------------------------- */
+.bottom {
+    position: absolute;
+    left: 32px;
+    right: 32px;
+    bottom: 28px;
+    z-index: 600;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    pointer-events: none;
+}
+
+.hint {
+    font-size: 8px;
+    letter-spacing: .18em;
+    text-transform: uppercase;
+    opacity: .4;
+}
+
+.progress {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    font-size: 8px;
+    opacity: .5;
+}
+
+.progress-line {
+    width: 100px;
+    height: 1px;
+    background: rgba(0, 0, 0, .2);
+}
+
+.progress-fill {
+    width: 100%;
+    height: 100%;
+    background: currentColor;
+    transform: scaleX(0);
+    transform-origin: left;
+    will-change: transform;
+}
+
+/* ---------------------------------------------------------
+   CURSOR
+   --------------------------------------------------------- */
+.cursor {
+    position: fixed;
+    left: 0;
+    top: 0;
+    width: 17px;
+    height: 17px;
+    border: 1px solid white;
+    border-radius: 50%;
+    pointer-events: none;
+    z-index: 5000;
+    mix-blend-mode: difference;
+}
+
+.cursor-dot {
+    position: fixed;
+    left: 0;
+    top: 0;
+    width: 3px;
+    height: 3px;
+    background: white;
+    border-radius: 50%;
+    pointer-events: none;
+    z-index: 5001;
+    mix-blend-mode: difference;
+}
+
+/* ---------------------------------------------------------
+   MOBILE
+   --------------------------------------------------------- */
+@media (max-width: 800px) {
+    body { cursor: auto; }
+    .cursor,
+    .cursor-dot { display: none; }
+
+    .nav { padding: 2vh 4vw; }
+    .nav-right { gap: 4vw; }
+
+    .side {
+        width: 44vw;
+        top: auto;
+        bottom: auto;
+        transform: none;
+    }
+
+    /* Architecture left / Concept right, at the SAME height below the sphere */
+    .side.left, .side.right { top: 82vh; }
+    .side.left  { left: 7vw;  right: auto; text-align: left; }
+    .side.right { left: auto; right: 7vw;  text-align: right; }
+
+    .side-index {
+        font-size: 2.2vw;
+        margin-bottom: 1.4vh;
+    }
+
+    .side-title {
+        font-size: min(6vh, 9vw, 34px);
+        line-height: .98;
+        margin: 0;
+    }
+
+    .side-description {
+        display: none;
+    }
+
+    .stage {
+        left: 50%;
+        top: 52vh;
+        width: min(80vw, 42vh, 380px);
+        transform: translate(-50%, -50%);
+    }
+
+    .o-object {
+        left: 50%;
+        top: 50%;
+        width: 84%;
+        height: 84%;
+    }
+
+    .center-copy {
+        /* The "drag to explore" hint is a desktop affordance; on touch it's
+           redundant with the bottom hint, so we drop it to free vertical room
+           for the brand blocks stacked under the logo. */
+        display: none;
+    }
+
+    .center-kicker {
+        font-size: 2.1vw;
+        margin-bottom: 1.2vh;
+    }
+
+    .center-title {
+        font-size: 2.4vw;
+    }
+
+    .bottom {
+        left: 4vw;
+        right: 4vw;
+        bottom: 2.5vh;
+    }
+
+    .hint,
+    .progress {
+        font-size: 2.4vw;
+    }
+
+    .progress {
+        gap: 3vw;
+    }
+
+    .progress-line {
+        width: 24vw;
+    }
+}
+
+/* ---------------------------------------------------------
+   SMALL MOBILE
+   --------------------------------------------------------- */
+@media (max-width: 430px) {
+    .nav-right { display: none; }
+
+    .stage {
+        width: min(78vw, 38vh);
+    }
+
+    .side-title {
+        font-size: min(5.5vh, 8vw, 28px);
+    }
+}

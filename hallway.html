@@ -1,0 +1,1827 @@
+<!DOCTYPE html>
+<html lang="ro">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Studio de Arhitectură — Hero</title>
+
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        html,
+        body {
+            width: 100%;
+            height: 100%;
+            overflow: hidden;
+            background: #08080e;
+            font-family: 'Inter', sans-serif;
+            color: #e8e8ec;
+            cursor: grab;
+            user-select: none;
+        }
+
+        body:active {
+            cursor: grabbing;
+        }
+
+        /* ============================================================
+           TEXT
+        ============================================================ */
+
+        .hero-text {
+            position: fixed;
+            top: clamp(2rem, 6vh, 4.2rem);
+            left: clamp(2rem, 6vw, 4.2rem);
+            z-index: 20;
+            pointer-events: none;
+        }
+
+        .hero-text .label {
+            font-size: clamp(0.5rem, 0.65vw, 0.7rem);
+            font-weight: 400;
+            letter-spacing: 0.4em;
+            text-transform: uppercase;
+            color: rgba(255,255,255,0.25);
+            margin-bottom: 0.5rem;
+        }
+
+        .hero-text h1 {
+            font-size: clamp(2.2rem, 5vw, 4.8rem);
+            font-weight: 500;
+            letter-spacing: -0.03em;
+            line-height: 1.05;
+            color: #f0f0f4;
+            text-shadow: 0 2px 40px rgba(0,0,0,0.6);
+        }
+
+        .hero-text h1 span {
+            display: block;
+            font-weight: 300;
+            color: rgba(255,255,255,0.4);
+        }
+
+        .hero-text .sub {
+            margin-top: 0.7rem;
+            font-size: clamp(0.6rem, 0.75vw, 0.8rem);
+            font-weight: 300;
+            letter-spacing: 0.07em;
+            color: rgba(255,255,255,0.2);
+        }
+
+        /* ============================================================
+           SCROLL INDICATOR
+        ============================================================ */
+
+        .scroll-indicator {
+            position: fixed;
+            bottom: clamp(2rem, 4vh, 3.2rem);
+            left: 50%;
+            transform: translateX(-50%);
+            z-index: 20;
+            pointer-events: none;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 0.4rem;
+            opacity: 0.3;
+        }
+
+        .scroll-indicator .line {
+            width: 1px;
+            height: 2.4rem;
+            background: linear-gradient(
+                to bottom,
+                rgba(255,255,255,0.5),
+                transparent
+            );
+            animation: scrollPulse 2.8s ease-in-out infinite;
+        }
+
+        .scroll-indicator .label {
+            font-size: 0.45rem;
+            letter-spacing: 0.3em;
+            text-transform: uppercase;
+            color: rgba(255,255,255,0.2);
+        }
+
+        @keyframes scrollPulse {
+            0%, 100% {
+                transform: scaleY(0.2);
+                opacity: 0.2;
+            }
+
+            50% {
+                transform: scaleY(1);
+                opacity: 1;
+            }
+        }
+
+        .drag-hint {
+            position: fixed;
+            bottom: clamp(4.8rem, 9vh, 7.5rem);
+            left: 50%;
+            transform: translateX(-50%);
+            z-index: 19;
+            pointer-events: none;
+            font-size: 0.4rem;
+            letter-spacing: 0.25em;
+            text-transform: uppercase;
+            color: rgba(255,255,255,0.06);
+            opacity: 0;
+            animation: fadeHint 5s ease 2.5s forwards;
+        }
+
+        @keyframes fadeHint {
+            0% {
+                opacity: 0;
+                transform: translateX(-50%) translateY(6px);
+            }
+
+            100% {
+                opacity: 1;
+                transform: translateX(-50%) translateY(0);
+            }
+        }
+
+        /* ============================================================
+           SCENA
+        ============================================================ */
+
+        .scene {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            perspective: 1200px;
+            perspective-origin: 50% 42%;
+            overflow: hidden;
+            z-index: 1;
+        }
+
+        .world {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            transform-style: preserve-3d;
+        }
+
+        .back-wall {
+            position: absolute;
+            top: -10%;
+            left: -10%;
+            width: 120%;
+            height: 120%;
+            transform: translateZ(-180px);
+
+            background:
+                radial-gradient(
+                    ellipse at 50% 30%,
+                    rgba(20,25,50,0.2) 0%,
+                    rgba(8,10,18,0.6) 70%,
+                    rgba(5,5,10,1) 100%
+                );
+
+            pointer-events: none;
+        }
+
+        .wall-grid {
+            position: absolute;
+            top: -10%;
+            left: -10%;
+            width: 120%;
+            height: 120%;
+            transform: translateZ(-179px);
+
+            background-image:
+                linear-gradient(
+                    rgba(60,80,120,0.015) 1px,
+                    transparent 1px
+                ),
+                linear-gradient(
+                    90deg,
+                    rgba(60,80,120,0.015) 1px,
+                    transparent 1px
+                );
+
+            background-size: 60px 60px;
+            pointer-events: none;
+        }
+
+        .floor {
+            position: absolute;
+            bottom: -20%;
+            left: -30%;
+            width: 160%;
+            height: 70%;
+            transform:
+                rotateX(-90deg)
+                translateZ(-10px)
+                scale(1.2);
+
+            transform-origin: center bottom;
+
+            background:
+                radial-gradient(
+                    ellipse at 50% 80%,
+                    rgba(30,40,70,0.12) 0%,
+                    rgba(10,12,22,0.04) 60%,
+                    transparent 100%
+                );
+
+            border-radius: 50%;
+            pointer-events: none;
+        }
+
+        /* ============================================================
+           POSTER
+        ============================================================ */
+
+        .poster {
+            position: absolute;
+
+            top: 50%;
+            left: 50%;
+
+            transform-style: preserve-3d;
+            will-change: transform;
+
+            width: 180px;
+            height: 240px;
+
+            overflow: hidden;
+
+            border-radius: 3px;
+
+            box-shadow:
+                0 0 40px rgba(80,130,255,0.06),
+                0 0 80px rgba(80,130,255,0.03);
+
+            border: 1px solid rgba(255,255,255,0.02);
+        }
+
+        .poster-image {
+            display: block;
+
+            width: 220px;
+            height: 293px;
+
+            object-fit: cover;
+
+            will-change: transform;
+
+            position: absolute;
+
+            top: 50%;
+            left: 50%;
+
+            transform:
+                translate(-50%, -50%)
+                scale(1.4);
+
+            filter:
+                brightness(1.08)
+                saturate(1)
+                contrast(1.02);
+
+            border-radius: 0;
+        }
+
+        .poster-frame {
+            position: absolute;
+            inset: 0;
+
+            border-radius: 3px;
+
+            pointer-events: none;
+
+            border: 1px solid rgba(255,255,255,0.03);
+
+            box-shadow:
+                inset 0 0 30px rgba(0,0,0,0.15);
+
+            z-index: 2;
+        }
+
+        /* ============================================================
+           REFLECTION
+           
+           IMPORTANT:
+           TOP EDGE = EXACTLY ALIGNED WITH POSTER BOTTOM EDGE
+           
+           Transform-origin = top center.
+           Astfel rotateX se face în jurul muchiei comune.
+        ============================================================ */
+
+        .reflection-wrapper {
+            position: absolute;
+
+            top: 50%;
+            left: 50%;
+
+            width: 180px;
+            height: 240px;
+
+            transform-style: preserve-3d;
+
+            /*
+             * FOARTE IMPORTANT:
+             * reflexia se rotește din muchia superioară,
+             * nu din centru.
+             */
+            transform-origin: 50% 0%;
+
+            will-change: transform;
+
+            pointer-events: none;
+        }
+
+        .reflection-inner {
+            position: absolute;
+
+            inset: 0;
+
+            overflow: hidden;
+
+            border-radius: 3px;
+
+            /*
+             * Imaginea reflexiei este oglindită vertical.
+             *
+             * Folosim o mască controlată prin variabila --refl-mask
+             * setată din JavaScript pentru a obține o estompare
+             * realistă spre partea de jos.
+             */
+            -webkit-mask-image:
+                var(--refl-mask);
+
+            mask-image:
+                var(--refl-mask);
+        }
+
+        .reflection-image {
+            display: block;
+
+            width: 220px;
+            height: 293px;
+
+            object-fit: cover;
+
+            position: absolute;
+
+            top: 50%;
+            left: 50%;
+
+            will-change: transform;
+
+            transform:
+                translate(-50%, -50%)
+                scaleY(-1)
+                scale(1.4);
+
+            border-radius: 0;
+
+            /*
+             * Filtrele reale sunt aplicate din JavaScript
+             * (brightness / saturate / blur) în funcție de
+             * distanța față de centru.
+             */
+        }
+
+        .reflection-caustic {
+            position: absolute;
+
+            inset: 0;
+
+            border-radius: 3px;
+
+            pointer-events: none;
+
+            z-index: 3;
+
+            background:
+                radial-gradient(
+                    ellipse at 50% 0%,
+                    rgba(120,200,255,0.04) 0%,
+                    transparent 70%
+                );
+
+            mix-blend-mode: screen;
+        }
+
+        /* ============================================================
+           CONTAINER
+        ============================================================ */
+
+        .posters-container {
+            position: absolute;
+
+            top: 20vh;
+            left: 0;
+
+            width: 100%;
+            height: 100%;
+
+            transform-style: preserve-3d;
+
+            will-change: transform;
+        }
+
+        /* ============================================================
+           RESPONSIVE
+        ============================================================ */
+
+        @media (max-width: 768px) {
+
+            .poster,
+            .reflection-wrapper {
+                width: 140px;
+                height: 187px;
+            }
+
+            .poster-image,
+            .reflection-image {
+                width: 170px;
+                height: 227px;
+            }
+
+            .scene {
+                perspective: 800px;
+            }
+
+            .hero-text h1 {
+                font-size: 2rem;
+            }
+        }
+
+        @media (max-width: 480px) {
+
+            .poster,
+            .reflection-wrapper {
+                width: 110px;
+                height: 147px;
+            }
+
+            .poster-image,
+            .reflection-image {
+                width: 140px;
+                height: 187px;
+            }
+
+            .scene {
+                perspective: 600px;
+            }
+
+            .hero-text h1 {
+                font-size: 1.5rem;
+            }
+        }
+
+        ::-webkit-scrollbar {
+            display: none;
+        }
+    </style>
+</head>
+
+<body>
+
+    <!-- ============================================================
+         TEXT
+    ============================================================ -->
+
+    <div class="hero-text">
+
+        <div class="label">
+            ● Studio de Arhitectură
+        </div>
+
+        <h1>
+            Spațiu &amp; Lumină
+            <span>în esență</span>
+        </h1>
+
+        <div class="sub">
+            — arhitectura ca experiență
+        </div>
+
+    </div>
+
+
+    <!-- ============================================================
+         SCROLL
+    ============================================================ -->
+
+    <div class="scroll-indicator">
+
+        <span class="label">
+            Derulează
+        </span>
+
+        <div class="line"></div>
+
+    </div>
+
+    <div class="drag-hint">
+        trage pentru a naviga
+    </div>
+
+
+    <!-- ============================================================
+         SCENE
+    ============================================================ -->
+
+    <div class="scene" id="scene">
+
+        <div class="world" id="world">
+
+            <div class="back-wall"></div>
+
+            <div class="wall-grid"></div>
+
+            <div class="floor"></div>
+
+            <div
+                class="posters-container"
+                id="postersContainer"
+            ></div>
+
+        </div>
+
+    </div>
+
+
+    <script>
+
+        /* ============================================================
+           CONFIG
+        ============================================================ */
+
+        /*
+         * Imaginile sunt luate din folderul ./concepts.
+         *
+         * Folosim TOATE imaginile din folder.
+         */
+        const IMAGES = [
+            '1.webp',
+            '1.2.webp',
+            '1 (2).webp',
+            '1 (3).webp',
+            '1 (4).webp',
+            '1 (5).webp',
+            '2.webp',
+            '2.1.webp',
+            '2 (2).webp',
+            '2 (3).webp',
+            '3.webp',
+            '3.1.webp',
+            '3.2.webp',
+            '4.webp',
+            '4.2.webp',
+            '4 (2).webp',
+            '5.webp',
+            '5.1.webp',
+            '6.webp',
+            '7.webp',
+            '8.webp',
+            '8.1.webp',
+            '9.webp',
+            '10.webp',
+            '11.webp',
+            '12.webp',
+            'BT.webp'
+        ];
+
+        const CARD_W = 180;
+        const CARD_H = 240;
+
+        const HALF_W = CARD_W / 2;
+        const HALF_H = CARD_H / 2;
+
+        const STEP = CARD_W + 70;
+
+
+        /*
+         * Posterul.
+         */
+        const POSTER_Y = -150;
+
+
+        /*
+         * Muchia de jos a posterului (folosită la centrare).
+         */
+        const POSTER_BOTTOM =
+            POSTER_Y + HALF_H;
+
+
+        const container =
+            document.getElementById(
+                'postersContainer'
+            );
+
+
+        function getCameraZ() {
+            return 1200;
+        }
+
+
+        /* ============================================================
+           GENERARE
+        ============================================================ */
+
+        const items = [];
+
+
+        IMAGES.forEach((seed, index) => {
+
+            const xPos =
+                index * STEP;
+
+
+            /* --------------------------------------------------------
+               POSTER
+            -------------------------------------------------------- */
+
+            const posterEl =
+                document.createElement('div');
+
+            posterEl.className =
+                'poster';
+
+            posterEl.dataset.index =
+                index;
+
+
+            posterEl.style.transform =
+                `translate3d(
+                    calc(${xPos}px - 50%),
+                    calc(${POSTER_Y}px - 50%),
+                    0px
+                )`;
+
+
+            const img =
+                document.createElement('img');
+
+            img.className =
+                'poster-image';
+
+            img.src =
+                `./concepts/${seed}`;
+
+            img.loading =
+                'lazy';
+
+            img.alt =
+                `Arhitectură ${index + 1}`;
+
+
+            const frame =
+                document.createElement('div');
+
+            frame.className =
+                'poster-frame';
+
+
+            posterEl.appendChild(img);
+
+            posterEl.appendChild(frame);
+
+            container.appendChild(
+                posterEl
+            );
+
+
+            /* --------------------------------------------------------
+               REFLECTION
+            -------------------------------------------------------- */
+
+            const wrapEl =
+                document.createElement('div');
+
+            wrapEl.className =
+                'reflection-wrapper';
+
+            wrapEl.dataset.index =
+                index;
+
+
+            const innerEl =
+                document.createElement('div');
+
+            innerEl.className =
+                'reflection-inner';
+
+
+            const reflImg =
+                document.createElement('img');
+
+            reflImg.className =
+                'reflection-image';
+
+            reflImg.src =
+                `./concepts/${seed}`;
+
+            reflImg.loading =
+                'lazy';
+
+            reflImg.alt =
+                `Reflexie ${index + 1}`;
+
+
+            const caustic =
+                document.createElement('div');
+
+            caustic.className =
+                'reflection-caustic';
+
+
+            innerEl.appendChild(
+                reflImg
+            );
+
+            innerEl.appendChild(
+                caustic
+            );
+
+            wrapEl.appendChild(
+                innerEl
+            );
+
+            container.appendChild(
+                wrapEl
+            );
+
+
+            items.push({
+
+                poster: posterEl,
+
+                img,
+
+                wrapEl,
+
+                innerEl,
+
+                reflImg,
+
+                x: xPos,
+
+                index
+
+            });
+
+        });
+
+
+        /* ============================================================
+           CENTRARE
+        ============================================================ */
+
+        const totalW =
+            (IMAGES.length - 1) * STEP;
+
+        const centerOff =
+            totalW / 2;
+
+
+        container.style.transform =
+            `translate3d(
+                ${-centerOff}px,
+                0px,
+                0px
+            )`;
+
+
+        let currentX =
+            -centerOff;
+
+        let targetX =
+            currentX;
+
+        let velocity = 0;
+
+        let isDragging =
+            false;
+
+        let dragStartX = 0;
+
+        let dragStartScroll = 0;
+
+        let lastPointerX = 0;
+
+        let lastMoveTime = 0;
+
+
+        /* ============================================================
+           LIMITS
+        ============================================================ */
+
+        function getLimits() {
+
+            const w =
+                IMAGES.length * STEP;
+
+            const vw =
+                window.innerWidth;
+
+
+            return {
+
+                min:
+                    -(w - vw * 0.3),
+
+                max:
+                    vw * 0.25
+
+            };
+
+        }
+
+
+        function clampScroll(val) {
+
+            const {
+                min,
+                max
+            } = getLimits();
+
+
+            return Math.max(
+                min,
+                Math.min(max, val)
+            );
+
+        }
+
+
+        /* ============================================================
+           REFLECTION GEOMETRY
+           
+           REGULA PRINCIPALĂ:
+
+           LEFT:
+             rotateX = 0°
+             skewX   = +35°
+
+           CENTER:
+             rotateX = 60°
+             skewX   = 0°
+
+           RIGHT:
+             rotateX = 0°
+             skewX   = -35°
+
+           IMPORTANT:
+           Reflexia NU își schimbă poziția X.
+           Ea rămâne sub poster.
+        ============================================================ */
+
+        function updateScene(scrollX) {
+
+            const time =
+                Date.now();
+
+            const vw =
+                window.innerWidth;
+
+            const vh =
+                window.innerHeight;
+
+
+            const viewCenterX =
+                vw / 2;
+
+
+            const cameraZ =
+                getCameraZ();
+
+
+            items.forEach((item) => {
+
+
+                /* ====================================================
+                   POZIȚIE CARD
+                ==================================================== */
+
+                const worldX =
+                    item.x +
+                    scrollX +
+                    viewCenterX;
+
+
+                const normDist =
+                    (worldX - viewCenterX) /
+                    (vw * 0.5);
+
+
+                const dist =
+                    Math.max(
+                        -1.4,
+                        Math.min(
+                            1.4,
+                            normDist
+                        )
+                    );
+
+
+                /*
+                 * Pentru geometria reflexiei avem nevoie de o valoare
+                 * normalizată strict între -1 și +1.
+                 */
+                const reflectionDist =
+                    Math.max(
+                        -1,
+                        Math.min(
+                            1,
+                            dist
+                        )
+                    );
+
+
+                const absDist =
+                    Math.abs(
+                        reflectionDist
+                    );
+
+
+                /* ====================================================
+                   POSTER
+                ==================================================== */
+
+                const floatY =
+                    Math.sin(
+                        time / 1800 +
+                        item.index * 1.3
+                    ) * 1.8;
+
+
+                const parallaxX =
+                    dist * 22;
+
+
+                const parallaxY =
+                    Math.sin(
+                        dist * 1.5
+                    ) * 7;
+
+
+                const zOff =
+                    Math.sin(
+                        dist * 1.2
+                    ) * 16;
+
+
+                item.poster.style.transform =
+                    `translate3d(
+                        calc(${item.x}px - 50%),
+                        calc(${POSTER_Y + floatY}px - 50%),
+                        ${zOff}px
+                    )`;
+
+
+                item.img.style.transform =
+                    `translate(
+                        calc(-50% + ${parallaxX}px),
+                        calc(-50% + ${parallaxY}px)
+                    )
+                    scale(1.4)`;
+
+
+                /* ====================================================
+                   REFLECTION
+                ==================================================== */
+
+                const floatYRefl =
+                    Math.sin(
+                        time / 1900 +
+                        item.index * 1.4 +
+                        0.5
+                    ) * 1.2;
+
+
+                /*
+                 * =====================================================
+                 * ROTATE X
+                 *
+                 * Rotăm puțin mai mult pentru profunzime 3D.
+                 *
+                 * CENTRU = 26°
+                 * EXTREMITĂȚI = 4°
+                 * =====================================================
+                 */
+
+                const rotX =
+                    4 +
+                    22 *
+                    (1 - absDist);
+
+
+                /*
+                 * =====================================================
+                 * SKEW X
+                 *
+                 * Un pic mai mult skew decât înainte pentru senzația
+                 * de perspectivă laterală.
+                 *
+                 * LEFT  = +12
+                 * CENTER = 0
+                 * RIGHT = -12
+                 *
+                 * deci:
+                 *
+                 * -dist * 12
+                 * =====================================================
+                 */
+
+                const skewX =
+                    -reflectionDist * 12;
+
+
+                /*
+                 * =====================================================
+                 * POZIȚIE
+                 *
+                 * REFLEXIA ESTE PE ACEEAȘI AXĂ X CU POSTERUL.
+                 *
+                 * NU MAI EXISTĂ:
+                 *
+                 * lateralShift
+                 *
+                 * pentru că exact asta făcea reflexia să fugă
+                 * de sub poster.
+                 *
+                 * X = item.x
+                 *
+                 * Y = muchia de jos a posterului + GAP
+                 * =====================================================
+                 */
+
+                const reflectionX =
+                    item.x;
+
+
+                /*
+                 * =====================================================
+                 * REFLECTION Y (ROBUST)
+                 *
+                 * Măsurăm înălțimea RENDATĂ a posterului și calculăm
+                 * poziția reflexiei astfel încât muchia ei de sus să
+                 * stea întotdeauna la exact `gapScreen` pixeli sub
+                 * partea de jos a posterului.
+                 *
+                 * Astfel gap-ul este PERFECT și identic pe ORICE
+                 * viewport și pe ORICE breakpoint (desktop, tablet,
+                 * mobil) — fără overlapping și fără gap prea mare.
+                 * =====================================================
+                 */
+
+                const posterCssH =
+                    item.poster.offsetHeight;
+
+                const posterH_screen =
+                    item.poster.getBoundingClientRect().height;
+
+                /*
+                 * Gap vizual dorit (în pixeli pe ecran), mic și
+                 * perfect constant.
+                 */
+                const gapScreen = 14;
+
+                const reflectionY =
+                    (
+                        posterH_screen + gapScreen
+                    ) *
+                    (posterCssH / posterH_screen) +
+                    POSTER_Y +
+                    floatYRefl;
+
+
+                /*
+                 * =====================================================
+                 * ADÂNCIME
+                 *
+                 * Reflexia stă ușor în spatele posterului,
+                 * pe planul podelei.
+                 * =====================================================
+                 */
+
+                const reflZ =
+                    -10 -
+                    absDist * 6;
+
+
+                /*
+                 * =====================================================
+                 * OPACITY
+                 *
+                 * Reflexia rămâne vizibilă pe tot ecranul,
+                 * chiar și la extremități (ca pe o podea lucioasă).
+                 * =====================================================
+                 */
+
+                const opacity =
+                    Math.max(
+                        0.28,
+                        0.78 -
+                        absDist * 0.16
+                    );
+
+
+                /*
+                 * =====================================================
+                 * BLUR / SATURATION / BRIGHTNESS
+                 *
+                 * Reflexia aproape de centru e aproape identică cu
+                 * imaginea (foarte puțin blur). La extremități se
+                 * estompează ușor.
+                 * =====================================================
+                 */
+
+                const blurPx =
+                    0.15 +
+                    absDist * 0.5;
+
+
+                const saturate =
+                    Math.max(
+                        0.45,
+                        0.72 -
+                        absDist * 0.10
+                    );
+
+
+                const bright =
+                    Math.max(
+                        0.40,
+                        0.55 -
+                        absDist * 0.05
+                    );
+
+
+                /*
+                 * =====================================================
+                 * MASK
+                 *
+                 * Reflexia este aproape opacă lângă poster (sus)
+                 * și se estompează treptat spre partea de jos.
+                 * La extremități estomparea e puțin mai devreme.
+                 * =====================================================
+                 */
+
+                const fadeStart =
+                    Math.max(
+                        55,
+                        78 -
+                        absDist * 14
+                    );
+
+
+                const fadeEnd =
+                    Math.max(
+                        80,
+                        100 -
+                        absDist * 12
+                    );
+
+
+                const maskGrad =
+                    `linear-gradient(
+                        to bottom,
+                        rgba(0,0,0,0.95) 0%,
+                        rgba(0,0,0,0.88) ${fadeStart * 0.45}%,
+                        rgba(0,0,0,0.6) ${fadeStart}%,
+                        rgba(0,0,0,0) ${fadeEnd}%
+                    )`;
+
+
+                /*
+                 * =====================================================
+                 * APPLY TRANSFORM
+                 *
+                 * ORDINEA ESTE IMPORTANTĂ:
+                 *
+                 * 1. translate la muchia de sus
+                 * 2. rotateX în jurul muchiei
+                 * 3. skewX pentru perspectiva laterală
+                 *
+                 * Transform-origin este:
+                 *
+                 * 50% 0%
+                 *
+                 * deci rotația pleacă exact din partea de sus
+                 * a reflexiei.
+                 * =====================================================
+                 */
+
+                item.wrapEl.style.transform =
+                    `translate3d(
+                        calc(${reflectionX}px - 50%),
+                        calc(${reflectionY}px - 50%),
+                        ${reflZ}px
+                    )
+                    rotateX(${rotX}deg)
+                    skewX(${skewX}deg)`;
+
+
+                item.wrapEl.style.opacity =
+                    opacity;
+
+
+                /*
+                 * =====================================================
+                 * MASK
+                 * =====================================================
+                 */
+
+                item.innerEl.style.setProperty(
+                    '--refl-mask',
+                    maskGrad
+                );
+
+                item.innerEl.style.webkitMaskImage =
+                    maskGrad;
+
+                item.innerEl.style.maskImage =
+                    maskGrad;
+
+
+                /*
+                 * =====================================================
+                 * REFLECTION IMAGE
+                 *
+                 * IMPORTANT:
+                 * Reflexia urmărește EXACT același parallax ca poza
+                 * principală, oglindit vertical (scaleY(-1)).
+                 *
+                 * X rămâne identic cu paralaxa pozei.
+                 * Y este inversat (-parallaxY) pentru ca reflexia să
+                 * meargă în oglindă cu imaginea — exact ca în realitate.
+                 * =====================================================
+                 */
+
+                item.reflImg.style.filter =
+                    `brightness(${bright})
+                     saturate(${saturate})
+                     blur(${blurPx}px)`;
+
+
+                item.reflImg.style.transform =
+                    `translate(
+                        calc(-50% + ${parallaxX}px),
+                        calc(-50% - ${parallaxY}px)
+                    )
+                     scaleY(-1)
+                     scale(1.4)`;
+
+            });
+
+        }
+
+
+        /* ============================================================
+           APPLY SCROLL
+        ============================================================ */
+
+        function applyScroll(x) {
+
+            currentX =
+                x;
+
+
+            container.style.transform =
+                `translate3d(
+                    ${x}px,
+                    0px,
+                    0px
+                )`;
+
+
+            updateScene(x);
+
+        }
+
+
+        /* ============================================================
+           INTERACTION
+        ============================================================ */
+
+        function onPointerDown(x) {
+
+            isDragging =
+                true;
+
+            dragStartX =
+                x;
+
+            dragStartScroll =
+                currentX;
+
+            lastPointerX =
+                x;
+
+            lastMoveTime =
+                performance.now();
+
+            velocity =
+                0;
+
+            document.body.style.cursor =
+                'grabbing';
+
+        }
+
+
+        function onPointerMove(x) {
+
+            if (!isDragging)
+                return;
+
+
+            const delta =
+                x -
+                dragStartX;
+
+
+            targetX =
+                clampScroll(
+                    dragStartScroll +
+                    delta
+                );
+
+
+            applyScroll(
+                targetX
+            );
+
+
+            const now =
+                performance.now();
+
+
+            const dt =
+                now -
+                lastMoveTime;
+
+
+            if (dt > 0) {
+
+                const dx =
+                    x -
+                    lastPointerX;
+
+
+                velocity =
+                    Math.max(
+                        -500,
+                        Math.min(
+                            500,
+                            dx / dt * 14
+                        )
+                    );
+
+            }
+
+
+            lastPointerX =
+                x;
+
+            lastMoveTime =
+                now;
+
+        }
+
+
+        function onPointerUp() {
+
+            if (!isDragging)
+                return;
+
+
+            isDragging =
+                false;
+
+
+            document.body.style.cursor =
+                'grab';
+
+
+            if (
+                Math.abs(velocity) < 1
+            ) {
+                velocity = 0;
+            }
+
+        }
+
+
+        /* ============================================================
+           MOUSE
+        ============================================================ */
+
+        document.addEventListener(
+            'mousedown',
+            e => {
+
+                if (
+                    e.target.closest(
+                        '.hero-text, .scroll-indicator, .drag-hint'
+                    )
+                ) {
+                    return;
+                }
+
+                onPointerDown(
+                    e.clientX
+                );
+
+            }
+        );
+
+
+        document.addEventListener(
+            'mousemove',
+            e => {
+
+                onPointerMove(
+                    e.clientX
+                );
+
+            }
+        );
+
+
+        document.addEventListener(
+            'mouseup',
+            onPointerUp
+        );
+
+
+        /* ============================================================
+           TOUCH
+        ============================================================ */
+
+        document.addEventListener(
+            'touchstart',
+            e => {
+
+                const t =
+                    e.touches[0];
+
+                if (
+                    !t ||
+                    e.target.closest(
+                        '.hero-text, .scroll-indicator, .drag-hint'
+                    )
+                ) {
+                    return;
+                }
+
+                onPointerDown(
+                    t.clientX
+                );
+
+            },
+            {
+                passive: true
+            }
+        );
+
+
+        document.addEventListener(
+            'touchmove',
+            e => {
+
+                const t =
+                    e.touches[0];
+
+                if (t) {
+
+                    onPointerMove(
+                        t.clientX
+                    );
+
+                }
+
+            },
+            {
+                passive: true
+            }
+        );
+
+
+        document.addEventListener(
+            'touchend',
+            onPointerUp,
+            {
+                passive: true
+            }
+        );
+
+
+        /* ============================================================
+           WHEEL
+        ============================================================ */
+
+        document.addEventListener(
+            'wheel',
+            e => {
+
+                if (
+                    e.target.closest(
+                        '.hero-text, .scroll-indicator, .drag-hint'
+                    )
+                ) {
+                    return;
+                }
+
+
+                e.preventDefault();
+
+
+                targetX =
+                    clampScroll(
+                        targetX -
+                        e.deltaY * 0.7
+                    );
+
+
+                velocity =
+                    0;
+
+            },
+            {
+                passive: false
+            }
+        );
+
+
+        /* ============================================================
+           KEYBOARD
+        ============================================================ */
+
+        document.addEventListener(
+            'keydown',
+            e => {
+
+                if (
+                    e.key === 'ArrowLeft'
+                ) {
+
+                    e.preventDefault();
+
+                    targetX =
+                        clampScroll(
+                            targetX +
+                            STEP * 0.3
+                        );
+
+                    velocity =
+                        0;
+
+                }
+
+
+                if (
+                    e.key === 'ArrowRight'
+                ) {
+
+                    e.preventDefault();
+
+                    targetX =
+                        clampScroll(
+                            targetX -
+                            STEP * 0.3
+                        );
+
+                    velocity =
+                        0;
+
+                }
+
+            }
+        );
+
+
+        /* ============================================================
+           RESIZE
+        ============================================================ */
+
+        let resizeTimer;
+
+
+        window.addEventListener(
+            'resize',
+            () => {
+
+                clearTimeout(
+                    resizeTimer
+                );
+
+
+                resizeTimer =
+                    setTimeout(
+                        () => {
+
+                            targetX =
+                                clampScroll(
+                                    currentX
+                                );
+
+                            applyScroll(
+                                targetX
+                            );
+
+                        },
+                        100
+                    );
+
+            }
+        );
+
+
+        /* ============================================================
+           ANIMATION LOOP
+        ============================================================ */
+
+        let rafId;
+
+
+        function animate() {
+
+            if (
+                !isDragging &&
+                Math.abs(velocity) > 0.3
+            ) {
+
+                targetX =
+                    clampScroll(
+                        targetX +
+                        velocity * 0.02
+                    );
+
+
+                velocity *=
+                    0.96;
+
+
+                if (
+                    Math.abs(velocity) < 0.3
+                ) {
+
+                    velocity =
+                        0;
+
+                }
+
+            }
+
+
+            const diff =
+                targetX -
+                currentX;
+
+
+            if (
+                Math.abs(diff) > 0.05
+            ) {
+
+                currentX +=
+                    diff * 0.07;
+
+
+                container.style.transform =
+                    `translate3d(
+                        ${currentX}px,
+                        0px,
+                        0px
+                    )`;
+
+            } else {
+
+                currentX =
+                    targetX;
+
+
+                container.style.transform =
+                    `translate3d(
+                        ${currentX}px,
+                        0px,
+                        0px
+                    )`;
+
+            }
+
+
+            updateScene(
+                currentX
+            );
+
+
+            rafId =
+                requestAnimationFrame(
+                    animate
+                );
+
+        }
+
+
+        /* ============================================================
+           INIT
+        ============================================================ */
+
+        function init() {
+
+            const total =
+                (IMAGES.length - 1) *
+                STEP;
+
+
+            targetX =
+                clampScroll(
+                    -total / 2 + 20
+                );
+
+
+            currentX =
+                targetX;
+
+
+            container.style.transform =
+                `translate3d(
+                    ${currentX}px,
+                    0px,
+                    0px
+                )`;
+
+
+            updateScene(
+                currentX
+            );
+
+
+            animate();
+
+
+            setTimeout(
+                () => {
+                    updateScene(
+                        currentX
+                    );
+                },
+                200
+            );
+
+        }
+
+
+        if (
+            document.readyState ===
+            'complete'
+        ) {
+
+            setTimeout(
+                init,
+                100
+            );
+
+        } else {
+
+            window.addEventListener(
+                'load',
+                () => {
+                    setTimeout(
+                        init,
+                        150
+                    );
+                }
+            );
+
+        }
+
+
+        window.addEventListener(
+            'beforeunload',
+            () => {
+
+                if (rafId) {
+
+                    cancelAnimationFrame(
+                        rafId
+                    );
+
+                }
+
+            }
+        );
+
+    </script>
+
+</body>
+</html>
+

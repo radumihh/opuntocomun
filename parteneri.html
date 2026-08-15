@@ -1,0 +1,680 @@
+<!DOCTYPE html>
+<html lang="ro">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+  <title>Peacock Infinite Poster Floor</title>
+
+  <link
+    href="https://fonts.googleapis.com/css2?family=Montserrat:wght@800&display=swap"
+    rel="stylesheet"
+  >
+
+  <style>
+
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    html,
+    body {
+      width: 100%;
+      height: 100%;
+    }
+
+    body {
+      overflow: hidden;
+      background: #000;
+      font-family: sans-serif;
+    }
+
+
+    /* =========================================================
+       50VH VIEWPORT
+       ========================================================= */
+
+    .scene {
+      position: fixed;
+
+      left: 0;
+      bottom: 0;
+
+      width: 100%;
+      height: 50vh;
+
+      overflow: hidden;
+
+      background: #000;
+    }
+
+
+    /* =========================================================
+       INFINITE POSTER FLOOR (canvas)
+       ========================================================= */
+
+    .waterfall {
+      position: absolute;
+
+      left: 0;
+      top: 0;
+
+      width: 100%;
+      height: 100%;
+
+      display: block;
+    }
+
+
+    /* un rând = o linie de postere care curge sus */
+    .wrow {
+      display: flex;
+
+      justify-content: center;
+
+      column-gap: 25px;
+
+      padding: 0 30px;
+    }
+
+
+    .wposter {
+      width: 200px;
+      height: 300px;
+
+      flex-shrink: 0;
+
+      overflow: hidden;
+
+      border-radius: 12px;
+
+      background: #111;
+
+      border: 1px solid rgba(255, 255, 255, 0.12);
+
+      box-shadow:
+        0 18px 40px rgba(0, 0, 0, 0.85);
+    }
+
+
+    .wposter img {
+      display: block;
+
+      width: 100%;
+      height: 100%;
+
+      object-fit: cover;
+
+      user-select: none;
+
+      -webkit-user-drag: none;
+    }
+
+
+    /* =========================================================
+       TOP DARKNESS / HORIZON
+       ========================================================= */
+
+    .scene::after {
+      content: "";
+
+      position: absolute;
+
+      inset: 0;
+
+      pointer-events: none;
+
+      z-index: 4;
+
+      background:
+        linear-gradient(
+          to bottom,
+
+          rgba(0, 0, 0, 0.97) 0%,
+
+          rgba(0, 0, 0, 0.75) 12%,
+
+          rgba(0, 0, 0, 0.22) 32%,
+
+          rgba(0, 0, 0, 0.04) 70%,
+
+          rgba(0, 0, 0, 0.25) 100%
+        );
+    }
+
+
+    /* =========================================================
+       VIGNETTE
+       ========================================================= */
+
+    .vignette {
+      position: absolute;
+
+      inset: 0;
+
+      z-index: 5;
+
+      pointer-events: none;
+
+      background:
+        radial-gradient(
+          ellipse at 50% 75%,
+
+          transparent 25%,
+
+          rgba(0, 0, 0, 0.35) 60%,
+
+          #000 100%
+        );
+    }
+
+
+    /* =========================================================
+       PEACOCK LOGO
+       ========================================================= */
+
+    .logo-wrapper {
+      position: fixed;
+
+      left: 50%;
+      top: 50%;
+
+      transform:
+        translate(-50%, -50%);
+
+      z-index: 20;
+
+      display: flex;
+
+      align-items: center;
+
+      gap: 14px;
+
+      pointer-events: none;
+    }
+
+
+    .logo-text {
+      font-family: 'Montserrat', sans-serif;
+
+      font-size: clamp(
+        4rem,
+        8vw,
+        7rem
+      );
+
+      font-weight: 800;
+
+      color: #fff;
+
+      line-height: 0.9;
+
+      letter-spacing: -5px;
+
+      text-shadow:
+        0 15px 60px rgba(0, 0, 0, 1),
+
+        0 5px 20px rgba(0, 0, 0, 1);
+    }
+
+
+    .dot-container {
+      display: flex;
+
+      flex-direction: column;
+
+      gap: 7px;
+    }
+
+
+    .dot {
+      width: 16px;
+      height: 16px;
+
+      border-radius: 50%;
+
+      box-shadow:
+        0 0 20px rgba(255, 255, 255, 0.15);
+    }
+
+
+    .dot-1 {
+      background: #FDCB22;
+    }
+
+    .dot-2 {
+      background: #F77D1C;
+    }
+
+    .dot-3 {
+      background: #EE2A5C;
+    }
+
+    .dot-4 {
+      background: #944CAB;
+    }
+
+    .dot-5 {
+      background: #2282EA;
+    }
+
+    .dot-6 {
+      background: #1CD962;
+    }
+
+
+    /* =========================================================
+       MOBILE
+       ========================================================= */
+
+    @media (max-width: 700px) {
+
+      .scene {
+        height: 55vh;
+      }
+
+
+      .wrow {
+        column-gap: 15px;
+
+        padding: 0 15px;
+      }
+
+
+      .wposter {
+        width: 120px;
+        height: 180px;
+
+        border-radius: 9px;
+      }
+
+
+      .logo-text {
+        font-size: 4rem;
+
+        letter-spacing: -3px;
+      }
+
+
+      .dot {
+        width: 10px;
+        height: 10px;
+      }
+
+
+      .dot-container {
+        gap: 5px;
+      }
+    }
+
+  </style>
+</head>
+
+
+<body>
+
+
+  <!-- =======================================================
+       50VH POSTER VIEWPORT
+       ======================================================= -->
+
+  <div class="scene">
+
+
+    <!-- =====================================================
+         INFINITE POSTER FLOOR (canvas, perspectivă)
+         ===================================================== -->
+
+    <canvas
+      class="waterfall"
+      id="waterfall"
+    ></canvas>
+
+    <!-- =====================================================
+         VIGNETTE
+         ===================================================== -->
+
+    <div class="vignette"></div>
+
+  </div>
+
+
+  <!-- =======================================================
+       PEACOCK LOGO
+       ======================================================= -->
+
+  <div class="logo-wrapper">
+
+    <div class="logo-text">
+      peacock
+    </div>
+
+
+    <div class="dot-container">
+
+      <div class="dot dot-1"></div>
+
+      <div class="dot dot-2"></div>
+
+      <div class="dot dot-3"></div>
+
+      <div class="dot dot-4"></div>
+
+      <div class="dot dot-5"></div>
+
+      <div class="dot dot-6"></div>
+
+    </div>
+
+  </div>
+
+
+  <!-- =======================================================
+       GSAP
+       ======================================================= -->
+
+  <script
+    src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/gsap.min.js">
+  </script>
+
+
+  <script>
+
+    /* =========================================================
+       CONFIG
+       ========================================================= */
+
+    const images = [
+
+      "https://picsum.photos/seed/peacock01/400/600",
+      "https://picsum.photos/seed/peacock02/400/600",
+      "https://picsum.photos/seed/peacock03/400/600",
+      "https://picsum.photos/seed/peacock04/400/600",
+      "https://picsum.photos/seed/peacock05/400/600",
+      "https://picsum.photos/seed/peacock06/400/600",
+      "https://picsum.photos/seed/peacock07/400/600",
+      "https://picsum.photos/seed/peacock08/400/600",
+      "https://picsum.photos/seed/peacock09/400/600",
+      "https://picsum.photos/seed/peacock10/400/600",
+
+      "https://picsum.photos/seed/peacock11/400/600",
+      "https://picsum.photos/seed/peacock12/400/600",
+      "https://picsum.photos/seed/peacock13/400/600",
+      "https://picsum.photos/seed/peacock14/400/600",
+      "https://picsum.photos/seed/peacock15/400/600",
+      "https://picsum.photos/seed/peacock16/400/600",
+      "https://picsum.photos/seed/peacock17/400/600",
+      "https://picsum.photos/seed/peacock18/400/600",
+      "https://picsum.photos/seed/peacock19/400/600",
+      "https://picsum.photos/seed/peacock20/400/600",
+
+      "https://picsum.photos/seed/peacock21/400/600",
+      "https://picsum.photos/seed/peacock22/400/600",
+      "https://picsum.photos/seed/peacock23/400/600",
+      "https://picsum.photos/seed/peacock24/400/600",
+      "https://picsum.photos/seed/peacock25/400/600",
+      "https://picsum.photos/seed/peacock26/400/600",
+      "https://picsum.photos/seed/peacock27/400/600",
+      "https://picsum.photos/seed/peacock28/400/600",
+      "https://picsum.photos/seed/peacock29/400/600",
+      "https://picsum.photos/seed/peacock30/400/600",
+
+      "https://picsum.photos/seed/peacock31/400/600",
+      "https://picsum.photos/seed/peacock32/400/600",
+      "https://picsum.photos/seed/peacock33/400/600",
+      "https://picsum.photos/seed/peacock34/400/600",
+      "https://picsum.photos/seed/peacock35/400/600",
+      "https://picsum.photos/seed/peacock36/400/600",
+      "https://picsum.photos/seed/peacock37/400/600",
+      "https://picsum.photos/seed/peacock38/400/600",
+      "https://picsum.photos/seed/peacock39/400/600",
+      "https://picsum.photos/seed/peacock40/400/600"
+
+    ];
+
+
+    /* =========================================================
+       DOM
+       ========================================================= */
+
+    const scene =
+      document.querySelector(".scene");
+
+    const canvas =
+      document.getElementById("waterfall");
+
+    const ctx =
+      canvas.getContext("2d");
+
+
+    /* =========================================================
+       CONFIG
+       ========================================================= */
+
+    const dpr = window.devicePixelRatio || 1;
+
+    // Viteza (pe sec.), cât de repede curg posterele spre orizont.
+    const SPEED = 0.035;
+
+    // Perspectiva / adâncime.
+    const PERSP = 300;   // distanța de perspectivă (mai mică = mai adânc)
+    const DMAX  = 7;     // adâncimea la orizont
+    const DSTEP = 0.25;  // pas de adâncime între rânduri
+
+    // Câte coloane de postere pe lățime.
+    let COLS = 10;
+    const COLS_MOBILE = 5;
+
+    // Dimensiunea de referință a unui poster (în lume).
+    const POSTER_W = 200;
+    const POSTER_H = 300;
+    const GAP = 28;
+
+    let W = 0;
+    let H = 0;
+
+    // Imagini preîncărcate.
+    const imgs =
+      images.map(src => {
+        const i = new Image();
+        i.src = src;
+        return i;
+      });
+
+    // Poziția de scroll în spațiul de adâncime.
+    let scroll = 0;
+    let lastTime = performance.now();
+
+    let posterRects = [];
+
+
+    /* =========================================================
+       BUILD — pregătește layout-ul posterelor
+       ========================================================= */
+
+    function build() {
+
+      const s =
+        scene.getBoundingClientRect();
+
+      W = s.width;
+      H = s.height;
+
+      canvas.style.width = W + "px";
+      canvas.style.height = H + "px";
+      canvas.width = Math.round(W * dpr);
+      canvas.height = Math.round(H * dpr);
+      ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+
+      COLS =
+        W <= 700 ? COLS_MOBILE : 10;
+
+      // Construim coloanele de postere (x pe ecran, centrat).
+      const totalW =
+        COLS * (POSTER_W + GAP) - GAP;
+
+      const x0 =
+        (W - totalW) / 2;
+
+      posterRects = [];
+
+      for (let c = 0; c < COLS; c++) {
+
+        posterRects.push(
+          x0 + c * (POSTER_W + GAP)
+        );
+
+      }
+
+    }
+
+
+    /* =========================================================
+       PROJECTION
+       ========================================================= */
+
+    function scaleAt(d) {
+      return PERSP / (PERSP + d);
+    }
+
+
+    /* =========================================================
+       RENDER — desenează podeaua perspectivă
+       ========================================================= */
+
+    function render() {
+
+      ctx.clearRect(0, 0, W, H);
+
+      const slotCount = Math.ceil(DMAX / DSTEP) + 1;
+      const slots = [];
+
+      for (let i = 0; i < slotCount; i++) {
+
+        const base = i * DSTEP;
+
+        let eff = (base + scroll) % DMAX;
+        if (eff < 0) eff += DMAX;
+
+        slots.push(eff);
+
+      }
+
+      // aproape (0) → departe (DMAX)
+      slots.sort((a, b) => a - b);
+
+      const rows = slots.map(d => {
+        const sc = scaleAt(d);
+        return { d, sc, h: POSTER_H * sc, w: POSTER_W * sc };
+      });
+
+      // Debordare sub scenă → rândul din față intră de jos.
+      const over = Math.max(160, H * 0.4);
+
+      // Luăm pozițiile JOS → SUS (aproape = jos, departe = sus).
+      const positions = [];
+      let cursor = H + over;
+
+      for (let i = 0; i < rows.length; i++) {
+
+        const { sc, h, w, d } = rows[i];
+
+        const ty = cursor - h;
+
+        positions.push({ d, sc, h, w, ty });
+
+        // următorul rând (mai departe) e mai sus pe ecran.
+        cursor -= (h + GAP * sc);
+
+        if (cursor < 0) break;
+
+      }
+
+      // Desenăm în ordine: departe (sus) întâi, aproape (jos) peste ele.
+      for (let i = positions.length - 1; i >= 0; i--) {
+
+        const { d, sc, h, w, ty } = positions[i];
+
+        // Sărim rândurile complet sub scenă.
+        if (ty > H) continue;
+
+        const rowId = Math.round(d / DSTEP);
+        const imgOffset = Math.floor(scroll * 2000);
+
+        for (let c = 0; c < posterRects.length; c++) {
+
+          const cx = posterRects[c] + (POSTER_W - w) / 2;
+          const cy = ty;
+          const img =
+            imgs[(rowId * posterRects.length + c + imgOffset) % imgs.length];
+
+          if (img && img.complete && img.naturalWidth > 0) {
+
+            ctx.save();
+            ctx.fillStyle = "#111";
+            ctx.fillRect(cx, cy, w, h);
+            ctx.drawImage(img, cx, cy, w, h);
+            ctx.restore();
+
+          }
+
+        }
+
+      }
+
+    }
+
+
+    /* =========================================================
+       ANIMATE — loop prin setInterval (sigur, fără throttling)
+       ========================================================= */
+
+    setInterval(function tick() {
+
+      const now = performance.now();
+      const delta = (now - lastTime) / 1000;
+      lastTime = now;
+
+      // scroll crește → posterele urcă spre orizont.
+      scroll += SPEED * delta;
+
+      render();
+
+    }, 1000 / 60);
+
+
+    /* =========================================================
+       START
+       ========================================================= */
+
+    build();
+
+    window.addEventListener(
+      "resize",
+      build
+    );
+
+    // primul rand
+    render();
+
+
+    /* =========================================================
+       LOGO INTRO
+       ========================================================= */
+
+    gsap.from(
+      ".logo-wrapper",
+      {
+        opacity: 0,
+        scale: 0.92,
+        duration: 1.4,
+        ease: "power3.out"
+      }
+    );
+
+  </script>
+
+</body>
+</html>

@@ -1,0 +1,163 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+    <title>O. — Architecture / Concept</title>
+
+    <!-- Manifest generat automat: expune window.ARCH_IMAGES / CONCEPT_IMAGES -->
+    <script src="./image-list.js"></script>
+
+    <!-- GSAP -->
+    <script src="https://cdn.jsdelivr.net/npm/gsap@3.13.0/dist/gsap.min.js"></script>
+
+    <!-- Styles -->
+    <link rel="stylesheet" href="tilt-v3/css/base.css">
+    <link rel="stylesheet" href="tilt-v3/css/hero.css">
+    <link rel="stylesheet" href="tilt-v3/css/pages.css">
+</head>
+
+<body>
+
+    <!-- SCROLL ROOT — hero (100vh) + the two brand pages below -->
+    <div class="site-scroll" id="siteScroll">
+
+    <main class="hero" id="hero">
+
+        <!-- BACKGROUND COLOR SHADE -->
+        <div class="bg-shade" id="bgShade"></div>
+
+        <!-- BACKGROUND WORLDS -->
+        <div class="world">
+
+            <!-- ARCHITECTURE WORLD -->
+            <div class="world-layer architecture-world" id="architectureWorld">
+                <div class="room">
+                    <div class="wall" id="architectureWall"></div>
+                    <div class="floor"></div>
+                </div>
+            </div>
+
+            <!-- CONCEPT WORLD -->
+            <div class="world-layer concept-world" id="conceptWorld">
+                <div class="room">
+                    <div class="wall" id="conceptWall"></div>
+                    <div class="floor"></div>
+                </div>
+            </div>
+
+        </div>
+
+        <!-- VIGNETTE -->
+        <div class="vignette" id="vignette"></div>
+
+        <!-- NAV -->
+        <nav class="nav">
+            <div class="brand">O.</div>
+            <div class="nav-right">
+                <div class="nav-item">Studio</div>
+                <div class="nav-item">Work</div>
+                <div class="nav-item">Contact</div>
+            </div>
+        </nav>
+
+        <!-- STORY -->
+        <div class="story">
+
+            <!-- ARCHITECTURE -->
+            <section class="side left" id="architectureSide">
+                <span class="side-index">01 / Architecture</span>
+                <h1 class="side-title">Architecture<br>&amp; Interiors</h1>
+                <p class="side-description">
+                    Spaces reduced to their essential form. Architecture, interiors and objects
+                    shaped through light, proportion and material.
+                </p>
+            </section>
+
+            <!-- CENTER O. -->
+            <div class="stage">
+                <div class="o-shadow" id="oShadow"></div>
+
+                <div class="o-object" id="oObject">
+                    <div class="logo-shell" id="logoShell">
+                        <div class="logo-mask">
+                            <div class="logo-video-wrap">
+                                <video class="logo-video architecture-video" autoplay muted loop playsinline preload="auto">
+                                    <source src="./architecture1.webm" type="video/webm">
+                                    <source src="./architecture1.mp4" type="video/mp4">
+                                </video>
+                                <video class="logo-video concept-video" autoplay muted loop playsinline preload="auto">
+                                    <source src="./concept.webm" type="video/webm">
+                                    <source src="./concept.mp4" type="video/mp4">
+                                </video>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- CONCEPT -->
+            <section class="side right" id="conceptSide">
+                <span class="side-index">02 / Concept</span>
+                <h1 class="side-title">Concept<br>&amp; Experience</h1>
+                <p class="side-description">
+                    Environments designed to be experienced. Festivals, installations and visual
+                    worlds built around movement, energy and culture.
+                </p>
+            </section>
+
+        </div>
+
+        <!-- CENTER COPY -->
+        <div class="center-copy" id="centerCopy">
+            <div class="center-kicker">One studio · two realities</div>
+            <div class="center-title">Move to explore</div>
+        </div>
+
+        <!-- BOTTOM -->
+        <div class="bottom">
+            <div class="hint">Scroll / Drag</div>
+            <div class="progress">
+                <span>01</span>
+                <div class="progress-line">
+                    <div class="progress-fill" id="progressFill"></div>
+                </div>
+                <span>02</span>
+            </div>
+        </div>
+
+    </main>
+
+    <!-- BRAND PAGES — only the active brand is rendered/scrollable.
+         Currently intentionally empty: each brand page is a bare 100vh
+         section below the hero, ready to be filled in later. -->
+    <div class="pages">
+
+        <section class="page page-architecture is-active" id="archPage"></section>
+
+        <section class="page page-concept" id="conceptPage"></section>
+
+    </div>
+
+    </div><!-- /siteScroll -->
+
+    <!-- CUSTOM CURSOR -->
+    <div class="cursor" id="cursor"></div>
+    <div class="cursor-dot" id="cursorDot"></div>
+
+    <!-- Modules (order matters) -->
+    <script src="tilt-v3/js/config.js"></script>
+    <script src="tilt-v3/js/preload.js"></script>
+    <script src="tilt-v3/js/strips.js"></script>
+    <script src="tilt-v3/js/cursor.js"></script>
+    <script src="tilt-v3/js/tilt.js"></script>
+    <script src="tilt-v3/js/world.js"></script>
+    <script src="tilt-v3/js/pages.js"></script>
+    <script src="tilt-v3/js/sensor.js"></script>
+    <script src="tilt-v3/js/boot.js"></script>
+    <!-- <script src="tilt-v3/js/anti-inspect.js"></script> -->
+
+</body>
+
+</html>

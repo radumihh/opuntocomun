@@ -1,0 +1,68 @@
+/* =========================================================
+   PAGES — the two brand "bodies" below the hero.
+
+   PINNED REVEAL
+   The hero is pinned (position: sticky, top: 0) so that when
+   the user scrolls down, the hero stays in place while the
+   active brand page rises up and slides OVER it.
+
+     - Architecture : a quiet, precise, straight-edged reveal
+                      (hero recedes very gently).
+     - Concept      : an aggressive, curving "wave over" reveal
+                      (hero is pushed back hard, page curves over).
+   ========================================================= */
+
+/* The hero sticks at the top while the pages flow up over it. */
+.hero {
+    position: sticky;
+    top: 0;
+    z-index: 1;
+}
+
+.pages {
+    position: relative;
+    z-index: 6;                 /* floats above the pinned hero */
+}
+
+.page {
+    display: none;
+    position: relative;
+    min-height: 100vh;
+    will-change: transform;
+}
+
+.page.is-active {
+    display: block;
+}
+
+/* ---------------------------------------------------------
+   Architecture — light / fine / straight
+   A crisp top edge, minimal shadow: the page simply slides
+   up cleanly as the hero recedes by a couple of percent.
+   --------------------------------------------------------- */
+.page-architecture {
+    background: var(--paper);
+    border-top: 1px solid rgba(0, 0, 0, .06);
+}
+
+/* ---------------------------------------------------------
+   Concept — dark / dramatic / curved
+   A large rounded top edge + deep shadow make the page look
+   like a wave rolling up and covering the hero. No negative
+   margin: the page meets the hero cleanly so no dark sliver
+   is left hanging over it when switching worlds.
+   --------------------------------------------------------- */
+.page-concept {
+    background: var(--void);
+    border-radius: 110px 110px 0 0;
+    box-shadow: 0 -40px 120px rgba(0, 0, 0, .55);
+}
+
+/* ---------------------------------------------------------
+   Reduced motion — skip the recession, keep a plain slide.
+   --------------------------------------------------------- */
+@media (prefers-reduced-motion: reduce) {
+    .page {
+        will-change: auto;
+    }
+}
