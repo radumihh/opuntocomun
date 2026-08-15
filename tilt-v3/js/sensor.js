@@ -59,10 +59,12 @@
         window.addEventListener("deviceorientation", handleOrientation, true);
     }
 
-    function requestPermission() {
+    /* Request iOS permission from within a user gesture. Safe to call
+       many times (harmless no-op once granted/denied / non-iOS / desktop). */
+    function request() {
+        if (listening || enabled) return;
         var DOE = window.DeviceOrientationEvent;
         if (DOE && typeof DOE.requestPermission === "function") {
-            // iOS 13+: must be called from a user gesture.
             DOE.requestPermission().then(function (state) {
                 if (state === "granted") start();
             }).catch(function () {});
@@ -75,21 +77,24 @@
         if (!isTouchDevice()) return;
         var DOE = window.DeviceOrientationEvent;
         if (DOE && typeof DOE.requestPermission === "function") {
-            // Request on the first interaction (iOS requires it).
+            // Request on the first interaction (iOS requires a user
+            // gesture). Do NOT attach this to the tappable logo — a
+            // permission prompt spawned inside that gesture swallows the
+            // synthetic `click`, breaking the tap→transition on iOS.
+            // Instead a light dedicated touch target arms the sensor.
             var once = function () {
-                removeEventListener("pointerdown", once, true);
-                removeEventListener("touchend", once, true);
-                requestPermission();
+                removeEventListener("touchstart", once, true);
+                request();
             };
-            window.addEventListener("pointerdown", once, true);
-            window.addEventListener("touchend", once, true);
+            window.addEventListener("touchstart", once, { passive: true, capture: true });
         } else {
-            requestPermission();
+            start();
         }
     }
 
     NS.sensor = {
         init: init,
+        request: request,
         get active() { return enabled; }
     };
 

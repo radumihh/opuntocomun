@@ -111,10 +111,45 @@
         }
     }
 
-    refs.architectureSide.addEventListener("click", () => go("architecture"));
-    refs.conceptSide.addEventListener("click", () => go("concept"));
-    refs.oObject.addEventListener("click", () =>
+    /* TAP — iOS Safari swallows the synthetic `click` on the logo (and on
+       the sides) when a device-orientation permission prompt appears mid
+       gesture on the very first tap, so the tap→transition never runs with
+       the plain "click" listener. Respond to the raw touch too, deduped so
+       a tap never fires twice (touch + the late synthetic click). */
+    function makeTap(el, fn) {
+        let lastFire = 0;
+        let tracking = false, startX = 0, startY = 0;
+
+        el.addEventListener("touchstart", (e) => {
+            tracking = true;
+            startX = e.touches[0].clientX;
+            startY = e.touches[0].clientY;
+        }, { passive: true });
+
+        const fire = () => {
+            const now = Date.now();
+            if (now - lastFire < 350) return; // dedup touch + click
+            lastFire = now;
+            fn();
+        };
+
+        el.addEventListener("touchend", (e) => {
+            if (!tracking) return;
+            tracking = false;
+            const dx = e.changedTouches[0].clientX - startX;
+            const dy = e.changedTouches[0].clientY - startY;
+            if (Math.abs(dx) > 12 || Math.abs(dy) > 12) return; // a drag, not a tap
+            fire();
+        }, { passive: true });
+
+        // Native mouse click (desktop). Deduped against the touch path.
+        el.addEventListener("click", () => fire());
+    }
+
+    makeTap(refs.oObject, () =>
         go(NS.currentWorld === "architecture" ? "concept" : "architecture"));
+    makeTap(refs.architectureSide, () => go("architecture"));
+    makeTap(refs.conceptSide, () => go("concept"));
 
     /* Arrow keys — left/right brand switch */
     window.addEventListener("keydown", (e) => {
@@ -176,6 +211,29 @@
         if (NS.sensor.active) return; // sensor owns input on mobile
         NS.tilt.onPointerMove(e);
     }, { passive: true });
+
+    /* TOUCH-DRAG PARALLAX FALLBACK (mobile).
+       On iOS the gyroscope needs permission (and HTTPS) and might simply
+       never activate. Without a fallback, mobile then has NO parallax at
+       all (cursor.js is disabled on touch and pointermove is gated on the
+       sensor). Make an active drag on the hero drive the parallax exactly
+       like a mouse would — the finger IS the cursor. */
+    if (NS.isMobile()) {
+        let down = false;
+        const heroEl = refs.hero;
+        heroEl.addEventListener("touchstart", () => { down = true; }, { passive: true });
+        heroEl.addEventListener("touchmove", (e) => {
+            if (!down || NS.sensor.active) return; // sensor owns input when live
+            const t = e.touches[0];
+            NS.tilt.setTarget(
+                (t.clientX / window.innerWidth) * 2 - 1,
+                (t.clientY / window.innerHeight) * 2 - 1
+            );
+        }, { passive: true });
+        const end = () => { down = false; };
+        heroEl.addEventListener("touchend", end, { passive: true });
+        heroEl.addEventListener("touchcancel", end, { passive: true });
+    }
 
     /* -----------------------------------------------------
        INITIAL STATE
