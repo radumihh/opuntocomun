@@ -6,8 +6,15 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
     <title>O. — Architecture / Concept</title>
 
-    <!-- GSAP -->
-    <script src="https://cdn.jsdelivr.net/npm/gsap@3.13.0/dist/gsap.min.js"></script>
+    <!-- GSAP — self-hosted so the site never depends on an external CDN
+         (a CDN that is slow/blocked on the phone would leave window.gsap
+         undefined and silently kill ALL animations, taps and transitions). -->
+    <script src="tilt-v3/js/vendor/gsap.min.js"></script>
+    <script>
+        if (!window.gsap) {
+            document.write('<script src="https://cdn.jsdelivr.net/npm/gsap@3.13.0/dist/gsap.min.js"><\/script>');
+        }
+    </script>
 
     <!-- Styles -->
     <link rel="stylesheet" href="tilt-v3/css/base.css">
