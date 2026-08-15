@@ -192,6 +192,12 @@
     /* -----------------------------------------------------
        TILT + CURSOR (single shared GSAP ticker = one RAF)
        ----------------------------------------------------- */
+    // Disable GSAP's lag smoothing. On iOS (especially in Low Power Mode)
+    // requestAnimationFrame arrives in large, irregular gaps; GSAP's default
+    // lag smoothing then tries to "catch up" smoothly and can visibly stall
+    // tweens. Using raw time makes tweens advance 1:1 with the compositor.
+    gsap.ticker.lagSmoothing(0);
+
     NS.tilt.configure(refs);
     const cursorTick = NS.cursor.init(refs.cursor, refs.cursorDot);
 

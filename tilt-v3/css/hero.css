@@ -6,6 +6,7 @@
     position: relative;
     width: 100%;
     height: 100vh;
+    height: 100dvh;   /* iOS 15.4+: tracks the collapsing address bar */
     overflow: hidden;
     background: var(--paper);
     isolation: isolate;
@@ -502,6 +503,14 @@ body.theme-text-light .side.right::before {
     body { cursor: auto; }
     .cursor,
     .cursor-dot { display: none; }
+
+    /* iOS Safari + Low Power Mode: a full-screen CSS filter re-rasterises
+       the wall/shadow on every animated frame, which throttles the GPU hard
+       on iPhones and can make GSAP tweens appear frozen. Drop the colour
+       grade and blur on mobile — visually negligible, hugely cheaper. */
+    .architecture-world .wall,
+    .concept-world .wall { filter: none; }
+    .o-shadow { filter: none; }
 
     .nav { padding: 2vh 4vw; }
     .nav-right { gap: 4vw; }

@@ -28,6 +28,7 @@
     display: none;
     position: relative;
     min-height: 100vh;
+    min-height: 100dvh;  /* iOS 15.4+: tracks the collapsing address bar */
     will-change: transform;
 }
 
