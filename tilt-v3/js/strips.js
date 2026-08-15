@@ -61,12 +61,14 @@
         }
     }
 
-    function buildRandomWall(wallEl, images, cacheArr) {
-        buildStrips(wallEl, NS.pickRandom(images, NS.stripCount()), cacheArr);
+    // Build the wall from a curated image list, cycling through it
+    // deterministically (strip i -> list[i % len]) — no randomness.
+    function buildWall(wallEl, images, cacheArr) {
+        buildStrips(wallEl, images, cacheArr);
     }
 
     NS.build = {
-        randomWall: buildRandomWall,
+        randomWall: buildWall,
         getMedia: getMedia
     };
 

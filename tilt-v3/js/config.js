@@ -127,30 +127,33 @@
     };
 
     /* -----------------------------------------------------
-       Image manifest (from ./image-list.js) with fallback
+       Image manifest — CURATED, hardcoded (no random loading).
+       Architecture images: chosen explicitly by the studio.
+       Concept images: selected at editorial discretion.
        ----------------------------------------------------- */
-    NS.ARCH_IMAGES =
-        (typeof window.ARCH_IMAGES !== "undefined" && window.ARCH_IMAGES) || [];
-    NS.CONCEPT_IMAGES =
-        (typeof window.CONCEPT_IMAGES !== "undefined" && window.CONCEPT_IMAGES) || [];
+    NS.ARCH_IMAGES = [
+        "arch/ARCH%20DESIGN/A%20frame/7_edit.webp",
+        "arch/ARCH%20DESIGN/Apartament%20Baneasa/image00007.webp",
+        "arch/ARCH%20DESIGN/Apartament%20Baneasa/image00067.webp",
+        "arch/ARCH%20DESIGN/Apartament%20L1/1.webp",
+        "arch/ARCH%20DESIGN/Casa%20Mitza%20Berceni/05.webp",
+        "arch/ARCH%20DESIGN/Casa%20Roman%20Cluj/3.webp",
+        "arch/ARCH%20DESIGN/Residential/3.webp",
+        "arch/ARCH%20DESIGN/IRINA%20TUDORACHE/p1.webp",
+        "arch/ARCH%20DESIGN/GT%20Lawyer_s%20Office/21.webp"
+    ];
 
-    /* -----------------------------------------------------
-       Fisher–Yates helpers
-       ----------------------------------------------------- */
-    function shuffleInPlace(arr) {
-        for (let i = arr.length - 1; i > 0; i--) {
-            const j = Math.floor(Math.random() * (i + 1));
-            const t = arr[i];
-            arr[i] = arr[j];
-            arr[j] = t;
-        }
-        return arr;
-    }
-
-    // Pick n distinct random entries
-    NS.pickRandom = function (arr, n) {
-        return shuffleInPlace(arr.slice()).slice(0, n);
-    };
+    NS.CONCEPT_IMAGES = [
+        "concepts/1.webp",
+        "concepts/2.webp",
+        "concepts/3.webp",
+        "concepts/4.webp",
+        "concepts/5.webp",
+        "concepts/6.webp",
+        "concepts/7.webp",
+        "concepts/8.webp",
+        "concepts/9.webp"
+    ];
 
     // Public-ish surface used by boot/intro
     NS.isMobile = isMobile;

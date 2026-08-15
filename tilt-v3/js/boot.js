@@ -35,7 +35,7 @@
     NS.refs = refs;
 
     /* -----------------------------------------------------
-       BUILD WALLS (random local images, cached strips)
+       BUILD WALLS (curated hardcoded images, cached strips)
        ----------------------------------------------------- */
     function currentWallUrls(wallEl) {
         const out = [];
@@ -58,7 +58,7 @@
         NS.build.randomWall(refs.conceptWall, NS.CONCEPT_IMAGES, refs.conceptStrips);
         // The images actually on screen (incl. the hidden world)
         // get preloaded + pre-decoded so the next transition is
-        // jank-free; the rest of the manifest warms in the bg.
+        // jank-free; the curated set warms in the bg.
         warmCurrentImages();
         NS.preload.images(NS.ARCH_IMAGES.concat(NS.CONCEPT_IMAGES));
     }
