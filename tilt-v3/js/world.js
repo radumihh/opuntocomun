@@ -126,6 +126,29 @@
             }
             NS.transitioning = false;
         });
+
+        /* ---- FAILSAFE ----
+           On some mobile browsers (notably iOS) the GSAP timeline can stop
+           advancing mid-tween for various reasons. If that happens, the
+           crossfade would freeze AND `NS.transitioning` would stay `true`
+           forever — which also kills the gyro parallax. This native timer
+           (independent of GSAP's ticker) force-completes the crossfade and
+           releases the gate so the hero always switches and input resumes.
+           The real tween normally finishes well before this fires. */
+        clearTimeout(changeWorld._fail);
+        changeWorld._fail = setTimeout(function () {
+            if (NS.transitioning) {
+                gsap.set(incoming, { opacity: 1, scale: 1 });
+                gsap.set(outgoing, { opacity: 0 });
+                gsap.set(newFloor, { opacity: 1 });
+                gsap.set(oldFloor, { opacity: 0 });
+                gsap.set(el.bgShade, { opacity: forward ? 1 : 0 });
+                gsap.set(newSide, { opacity: 1, x: 0, scale: 1 });
+                gsap.set(oldSide, { opacity: 0 });
+                if (oldVideo && oldVideo.pause) { try { oldVideo.pause(); } catch (e) {} }
+                NS.transitioning = false;
+            }
+        }, 1700);
     }
 
     NS.world = { changeWorld: changeWorld };

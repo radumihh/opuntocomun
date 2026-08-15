@@ -199,13 +199,22 @@
     // instead of mouse/drag (pointer input is off when the sensor is live).
     NS.sensor.init();
 
-    // Shared render loop (single RAF). The FPS watchdog runs on the same
-    // loop — if the compositor can't hold ~30fps it auto-degrades quality.
-    gsap.ticker.add(() => {
-        NS.tilt.tick();
-        if (cursorTick) cursorTick();
-        NS.perf.fpsWatch();
-    });
+    // Shared render loop. We run it on our OWN requestAnimationFrame (not on
+    // gsap.ticker) as a safeguard: on some iOS situations GSAP's internal
+    // ticker can stall, which would otherwise freeze the parallax/gyro/cursor
+    // even though the sensor is granted and firing. requestAnimationFrame is
+    // the same frame source GSAP uses, so there is zero duplication — GSAP's
+    // own timelines (intro, world crossfade, tweens) run on GSAP's internal
+    // ticker independently.
+    function rafLoop() {
+        try {
+            NS.tilt.tick();
+            if (cursorTick) cursorTick();
+            NS.perf.fpsWatch();
+        } catch (e) { /* never let one bad frame kill the loop */ }
+        requestAnimationFrame(rafLoop);
+    }
+    requestAnimationFrame(rafLoop);
 
     window.addEventListener("pointermove", (e) => {
         if (NS.sensor.active) return; // sensor owns input on mobile
